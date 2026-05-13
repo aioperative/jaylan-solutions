@@ -40,6 +40,11 @@ function statusCardColors(status: string) {
   }
 }
 
+// Normalize category strings before comparison so "& " vs "/ " differences don't break matching
+function normalizeCat(s: string) {
+  return s.toUpperCase().replace(/[\/&+]/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export function CommerceHero() {
   const [categories, setCategories] = useState<Category[]>(JAYLAN_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,13 +88,13 @@ export function CommerceHero() {
 
           const updatedCategories = JAYLAN_CATEGORIES.map((baseCat) => {
             const categoryItems = items.filter((item) => {
-              const itemCat = String(item.category).toUpperCase();
-              const catTitle = baseCat.title.toUpperCase();
+              const itemCatNorm = normalizeCat(String(item.category));
+              const catTitleNorm = normalizeCat(baseCat.title);
               const catNum = baseCat.number;
               return (
-                itemCat.includes(catTitle) ||
-                itemCat.includes(catNum) ||
-                catTitle.includes(itemCat)
+                itemCatNorm.includes(catTitleNorm) ||
+                catTitleNorm.includes(itemCatNorm) ||
+                String(item.category).toUpperCase().includes(catNum)
               );
             });
 
@@ -116,11 +121,11 @@ export function CommerceHero() {
             const item = items.find((i) => i.id === itemId || i.name === itemId);
             if (item) {
               setSelectedItem(item);
-              const itemCat = String(item.category ?? "").toUpperCase();
+              const itemCatNorm = normalizeCat(String(item.category ?? ""));
               const cat = updatedCategories.find(
                 (c) =>
-                  itemCat.includes(c.title.toUpperCase()) ||
-                  c.title.toUpperCase().includes(itemCat)
+                  itemCatNorm.includes(normalizeCat(c.title)) ||
+                  normalizeCat(c.title).includes(itemCatNorm)
               );
               if (cat) setItemCategory(cat.title);
             }
@@ -280,10 +285,10 @@ export function CommerceHero() {
   const visibleSubcategories = useMemo(() => {
     let relevantItems = allItems;
     if (filterCategory !== "all") {
-      const catTitle = filterCategory.toUpperCase();
+      const catTitleNorm = normalizeCat(filterCategory);
       relevantItems = allItems.filter((item) => {
-        const itemCat = String(item.category).toUpperCase();
-        return itemCat.includes(catTitle) || catTitle.includes(itemCat);
+        const itemCatNorm = normalizeCat(String(item.category));
+        return itemCatNorm.includes(catTitleNorm) || catTitleNorm.includes(itemCatNorm);
       });
     }
     const subcats = Array.from(new Set(relevantItems.map((i) => i.subcategory))).filter(Boolean) as string[];
