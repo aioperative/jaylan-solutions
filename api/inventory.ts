@@ -45,7 +45,7 @@ function mapRecord(id: string, f: Record<string, any>) {
     subcategory:       str(f["Subcategory"] ?? f["Sub-Category"] ?? f["Sub Category"]),
 
     // Status / condition
-    status:            str(f["Status"] ?? f["Availability"]),
+    status:            (() => { const s = str(f["Status"] ?? f["Availability"]); return s.startsWith("Closed") ? "Sold" : s; })(),
     condition:         str(f["Condition"]),
     systemStatus:      str(f["System Status"] ?? f["System Configuration"]),
     removalStatus:     str(f["Removal Status"] ?? f["Removal"]),
