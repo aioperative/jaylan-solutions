@@ -18,9 +18,31 @@ function Field({ label, value }: { label: string; value?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{label}</span>
-      <span className="text-sm font-semibold text-zinc-800 leading-snug">{value}</span>
+      <span className="text-sm font-semibold text-zinc-800 leading-snug whitespace-pre-line">{value}</span>
     </div>
   );
+}
+
+function statusBadgeColors(status: string) {
+  switch (status) {
+    case "Available":         return "bg-green-50 text-green-700 border-green-200";
+    case "Reserved":          return "bg-amber-50 text-amber-700 border-amber-200";
+    case "Pending Inspection":return "bg-blue-50 text-blue-700 border-blue-200";
+    case "Sold":              return "bg-zinc-100 text-zinc-500 border-zinc-200";
+    case "Internal Hold":     return "bg-orange-50 text-orange-700 border-orange-200";
+    default:                  return "bg-zinc-50 text-zinc-500 border-zinc-200";
+  }
+}
+
+function statusDotColor(status: string) {
+  switch (status) {
+    case "Available":         return "bg-green-500";
+    case "Reserved":          return "bg-amber-500";
+    case "Pending Inspection":return "bg-blue-500";
+    case "Sold":              return "bg-zinc-400";
+    case "Internal Hold":     return "bg-orange-500";
+    default:                  return "bg-zinc-400";
+  }
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -361,8 +383,8 @@ export function ItemDetail({ isOpen, onClose, itemData, categoryName }: ItemDeta
               {/* Status badges */}
               {itemData.status && (
                 <div className="flex flex-wrap gap-2 mb-5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-green-50 text-green-700 border-green-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+                  <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", statusBadgeColors(itemData.status))}>
+                    <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse inline-block", statusDotColor(itemData.status))} />
                     {itemData.status}
                   </span>
                   {itemData.condition && (
