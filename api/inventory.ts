@@ -22,7 +22,11 @@ function getAttachment(field: any): { url: string; filename: string } | null {
 }
 
 function mapRecord(id: string, f: Record<string, any>) {
-  const photos = Array.isArray(f["Photos"]) ? f["Photos"] : [];
+  const photos = (Array.isArray(f["Photos"]) ? f["Photos"] : [])
+    .slice()
+    .sort((a: any, b: any) =>
+      (a.filename ?? "").localeCompare(b.filename ?? "", undefined, { numeric: true, sensitivity: "base" })
+    );
   const images: string[] = photos
     .map((p: any) => p.url ?? p.thumbnails?.large?.url ?? "")
     .filter(Boolean);
