@@ -381,7 +381,7 @@ export function ItemDetail({ isOpen, onClose, itemData, categoryName }: ItemDeta
               {/* Public Description */}
               {itemData.publicDescription && (
                 <div className="mb-6 pb-6 border-b border-zinc-100">
-                  <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+                  <p className="text-sm text-zinc-600 font-medium leading-relaxed whitespace-pre-line">
                     {itemData.publicDescription}
                   </p>
                 </div>
