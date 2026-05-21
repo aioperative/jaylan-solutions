@@ -399,7 +399,7 @@ export function ItemDetail({ isOpen, onClose, itemData, categoryName }: ItemDeta
               {itemData.attachmentSummary && (
                 <div className="mb-6 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1">Attachment Summary</span>
-                  <p className="text-sm text-zinc-600 leading-relaxed">{itemData.attachmentSummary}</p>
+                  <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-line">{itemData.attachmentSummary}</p>
                 </div>
               )}
 
