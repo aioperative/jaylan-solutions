@@ -13,6 +13,7 @@ import { cn } from "@/src/lib/utils";
 type AugmentedCategory = Category & {
   _isLive: boolean;
   _matchCount: number;
+  _allSold: boolean;
 };
 
 const STATUS_PILL_ACTIVE: Record<string, string> = {
@@ -185,6 +186,7 @@ export function CommerceHero() {
           ...cat,
           _isLive: true,
           _matchCount: filteredLiveItems.length,
+          _allSold: filteredLiveItems.length > 0 && filteredLiveItems.every((i: any) => i.status === "Sold"),
           subCategories: [
             {
               ...cat.subCategories![liveSubcatIndex],
@@ -194,7 +196,7 @@ export function CommerceHero() {
           ],
         };
       }
-      return { ...cat, _isLive: false, _matchCount: 0 };
+      return { ...cat, _isLive: false, _matchCount: 0, _allSold: false };
     });
 
     if (searchQuery) {
@@ -536,7 +538,10 @@ export function CommerceHero() {
                     {category.number}
                   </div>
                   {(category as AugmentedCategory)._isLive && (category as AugmentedCategory)._matchCount > 0 && (
-                    <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                    <div className={cn(
+                      "absolute top-4 right-4 flex items-center gap-1.5 backdrop-blur-sm px-2.5 py-1 rounded-full",
+                      (category as AugmentedCategory)._allSold ? "bg-red-500/90" : "bg-green-500/90"
+                    )}>
                       <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       <span className="text-[9px] font-black text-white uppercase tracking-wider">
                         {(category as AugmentedCategory)._matchCount} Units
@@ -669,7 +674,12 @@ export function CommerceHero() {
                               <h4 className="text-xs font-black tracking-[0.2em] text-zinc-400 uppercase">
                                 {sub.title}
                               </h4>
-                              <span className="text-[10px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                              <span className={cn(
+                                "text-[10px] font-black px-2 py-0.5 rounded-full border",
+                                (selectedCategory as AugmentedCategory)._allSold
+                                  ? "text-red-600 bg-red-50 border-red-100"
+                                  : "text-green-600 bg-green-50 border-green-100"
+                              )}>
                                 {(sub as any)._fullItems?.length ?? sub.items?.length ?? 0} Units
                               </span>
                               <div className="h-[1px] flex-1 bg-zinc-100" />
