@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { X, Mail, ChevronLeft, ChevronRight, Zap, FileText, ExternalLink, Share2, Link, Check } from "lucide-react";
+import { X, Mail, ChevronLeft, ChevronRight, Zap, FileText, ExternalLink, Share2, Link, Check, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./button";
 import { cn } from "@/src/lib/utils";
@@ -495,6 +495,22 @@ export function ItemDetail({ isOpen, onClose, itemData, categoryName }: ItemDeta
                   >
                     <FileText className="w-4 h-4" />
                     {itemData.specSheetName || "Spec Sheet / Flier PDF"}
+                    <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                  </a>
+                </div>
+              )}
+
+              {/* More Photos Gallery */}
+              {itemData.morePhotosUrl && (
+                <div className="mb-6">
+                  <a
+                    href={itemData.morePhotosUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-green-400 hover:bg-zinc-800 transition-all font-bold text-sm"
+                  >
+                    <Images className="w-4 h-4 text-green-400" />
+                    View Full Photo Gallery
                     <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                   </a>
                 </div>

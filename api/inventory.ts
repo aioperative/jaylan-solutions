@@ -78,6 +78,10 @@ function mapRecord(id: string, f: Record<string, any>) {
     specSheetUrl:  specSheet?.url ?? "",
     specSheetName: specSheet?.filename ?? "Spec Sheet",
 
+    // Lot media
+    morePhotosUrl:  str(f["More Photos"] ?? ""),
+    sourceLot:      str(f["Source Lot"] ?? ""),
+
     // Legacy compat fields
     kw:             str(f["KW"] ?? f["Kilowatts"] ?? f["Rating (KW)"] ?? f["MW"]),
     mva:            str(f["MVA"] ?? f["Rating (MVA)"]),
