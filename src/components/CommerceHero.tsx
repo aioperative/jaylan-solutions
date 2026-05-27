@@ -46,6 +46,30 @@ function normalizeCat(s: string) {
   return s.toUpperCase().replace(/[\/&+]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Returns a relevant stock photo for a new dynamic category based on keyword matching.
+// Falls back to a generic industrial equipment image.
+function getEquipmentCategoryImage(categoryName: string): string {
+  const n = categoryName.toUpperCase();
+  if (n.includes("TRANSFORM"))
+    return "https://images.pexels.com/photos/13287446/pexels-photo-13287446.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
+  if (n.includes("GENERATOR") || n.includes("GEN SET") || n.includes("GENSET"))
+    return "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("MOTOR") || n.includes("PUMP") || n.includes("COMPRESSOR"))
+    return "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("CABLE") || n.includes("WIRE") || n.includes("CONDUCTOR"))
+    return "https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("SWITCH") || n.includes("BREAKER") || n.includes("PANEL") || n.includes("SWITCHGEAR"))
+    return "https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("UPS") || n.includes("BATTERY") || n.includes("RECTIFIER") || n.includes("INVERTER"))
+    return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("RELAY") || n.includes("CONTROL") || n.includes("SCADA") || n.includes("RTU"))
+    return "https://images.unsplash.com/photo-1761141535640-c78744c4f369?auto=format&fit=crop&q=80&w=800";
+  if (n.includes("BUS") || n.includes("BUSWAY") || n.includes("BUSDUCT"))
+    return "https://images.unsplash.com/photo-1693013112835-5f3128bb555f?auto=format&fit=crop&q=80&w=800";
+  // Generic industrial electrical fallback
+  return "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800";
+}
+
 export function CommerceHero() {
   const [categories, setCategories] = useState<Category[]>(JAYLAN_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,7 +111,10 @@ export function CommerceHero() {
           setAllItems(items);
           setFetchStatus("success");
 
-          const updatedCategories = JAYLAN_CATEGORIES.map((baseCat) => {
+          // Track matched item IDs so unmatched items can be grouped into dynamic categories
+          const matchedItemIds = new Set<string>();
+
+          const updatedCategories: Category[] = JAYLAN_CATEGORIES.map((baseCat) => {
             const categoryItems = items.filter((item) => {
               const itemCatNorm = normalizeCat(String(item.category));
               const catTitleNorm = normalizeCat(baseCat.title);
@@ -99,6 +126,8 @@ export function CommerceHero() {
               );
             });
 
+            categoryItems.forEach((item: any) => matchedItemIds.add(item.id));
+
             if (categoryItems.length > 0) {
               return {
                 ...baseCat,
@@ -106,7 +135,7 @@ export function CommerceHero() {
                 subCategories: [
                   {
                     title: "Live Inventory",
-                    items: categoryItems.map((i) => i.name),
+                    items: categoryItems.map((i: any) => i.name),
                     _fullItems: categoryItems,
                   },
                 ],
@@ -114,6 +143,44 @@ export function CommerceHero() {
             }
             return { ...baseCat, subCategories: [] };
           });
+
+          // ── Dynamic categories: Airtable categories not in the hardcoded list ──
+          // Group unmatched items by their Airtable Category field value and
+          // synthesise a new Category card for each one so nothing is invisible.
+          const unmatchedItems = items.filter(
+            (item: any) => !matchedItemIds.has(item.id) && String(item.category || "").trim()
+          );
+          const unmatchedByCategory = new Map<string, any[]>();
+          for (const item of unmatchedItems) {
+            const cat = String(item.category).trim();
+            if (!unmatchedByCategory.has(cat)) unmatchedByCategory.set(cat, []);
+            unmatchedByCategory.get(cat)!.push(item);
+          }
+
+          let nextCatNum = JAYLAN_CATEGORIES.length + 1;
+          for (const [catName, catItems] of unmatchedByCategory) {
+            const catId = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+            // Prefer an actual item photo; fall back to keyword-matched stock image
+            const catImage =
+              (catItems.find((i: any) => i.image)?.image as string | undefined) ||
+              getEquipmentCategoryImage(catName);
+
+            updatedCategories.push({
+              id: `dynamic-${catId}`,
+              number: String(nextCatNum++).padStart(2, "0"),
+              title: catName.toUpperCase(),
+              description: `${catItems.length} unit${catItems.length !== 1 ? "s" : ""} in inventory`,
+              image: catImage,
+              subCategories: [
+                {
+                  title: "Live Inventory",
+                  items: catItems.map((i: any) => i.name),
+                  _fullItems: catItems,
+                },
+              ],
+            });
+          }
+
           setCategories(updatedCategories);
 
           const urlParams = new URLSearchParams(window.location.search);
@@ -346,7 +413,7 @@ export function CommerceHero() {
                 className="bg-transparent text-[11px] font-bold text-zinc-700 focus:outline-none cursor-pointer pr-3 max-w-[130px]"
               >
                 <option value="all">All Categories</option>
-                {JAYLAN_CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.title}>{cat.number} – {cat.title}</option>
                 ))}
               </select>

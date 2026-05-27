@@ -162,6 +162,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // Hydrate lot records: fetch R2 gallery photos for items that have a gallery
+    // URL (More Photos field) but no Airtable attachment photos.
+    // The Railway gallery JSON endpoint lives at <morePhotosUrl>/json.
+    const lotRecords = result.records.filter(
+      (r) => r.morePhotosUrl && r.images.length === 0
+    );
+    if (lotRecords.length > 0) {
+      await Promise.all(
+        lotRecords.map(async (record) => {
+          try {
+            const jsonUrl = `${record.morePhotosUrl}/json`;
+            const resp = await fetch(jsonUrl, {
+              signal: AbortSignal.timeout(6000),
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              if (Array.isArray(data.photos) && data.photos.length > 0) {
+                record.images = data.photos;
+                record.image = data.photos[0];
+              }
+            }
+          } catch {
+            // Silently skip — better to show no photos than crash the page
+          }
+        })
+      );
+    }
+
     return res.status(200).json({ items: result.records });
   } catch (e: any) {
     console.error("Inventory API error:", e);
